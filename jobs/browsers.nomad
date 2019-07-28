@@ -1,7 +1,7 @@
 job "autowebcompat-browsers" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 70
+  priority = 55
 
   group "chrome" {
     count = 3
@@ -13,7 +13,6 @@ job "autowebcompat-browsers" {
       driver = "docker"
       config {
         image = "selenium/node-chrome:3.141.59-neon"
-        #shm_size = %{1024 * 1024 * 1024 * 2}
         port_map {
           node = 5555
         }
@@ -30,14 +29,14 @@ job "autowebcompat-browsers" {
             HUB_HOST = {{ .Address | toJSON}}
             HUB_PORT = {{ .Port | toJSON}}
           {{- end }}
-          NODE_MAX_SESSION = 3
-          NODE_MAX_INSTANCES = 3
+          NODE_MAX_SESSION = 1
+          NODE_MAX_INSTANCES = 1
         EOF
         destination = "local/generated.env"
         env = true
       }
       resources {
-        memory = 1000
+        memory = 700
         cpu = 1000
         network {
           mbits = 50
@@ -57,7 +56,6 @@ job "autowebcompat-browsers" {
       driver = "docker"
       config {
         image = "selenium/node-firefox:3.141.59-neon"
-        #shm_size = %{1024 * 1024 * 1024 * 2}
         port_map {
           node = 5555
         }
@@ -74,14 +72,14 @@ job "autowebcompat-browsers" {
             HUB_HOST = {{ .Address | toJSON}}
             HUB_PORT = {{ .Port | toJSON}}
           {{- end }}
-          NODE_MAX_SESSION = 3
-          NODE_MAX_INSTANCES = 3
+          NODE_MAX_SESSION = 1
+          NODE_MAX_INSTANCES = 1
         EOF
         destination = "local/generated.env"
         env = true
       }
       resources {
-        memory = 1000
+        memory = 900
         cpu = 1000
         network {
           mbits = 50

@@ -6,6 +6,7 @@ import threading
 import os
 import random
 import time
+from urllib.parse import urlparse
 
 # from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from PIL import Image
@@ -19,14 +20,14 @@ from selenium.common.exceptions import WebDriverException
 
 from autowebcompat import utils
 
-try:
-    # https://github.com/abseil/abseil-py/issues/99
-    import absl.logging
-    logging.root.removeHandler(absl.logging._absl_handler)
-    absl.logging._warn_preinit_stderr = False
-except Exception as e:
-    print("Failed to fix absl logging bug", e)
-    pass
+#try:
+#    # https://github.com/abseil/abseil-py/issues/99
+#    import absl.logging
+#    logging.root.removeHandler(absl.logging._absl_handler)
+#    absl.logging._warn_preinit_stderr = False
+#except Exception as e:
+#    print("Failed to fix absl logging bug", e)
+#    pass
 
 BROWSER_LANG = 'it'
 
@@ -37,7 +38,7 @@ FIREFOX_WIDTH_OFFSET = 0
 FIREFOX_HEIGHT_OFFSET = 54
 
 BROWSER_TIMEOUT = 30
-MAX_PROC = 20
+MAX_PROC = 5
 MAX_INTERACTION_DEPTH = 7
 
 MAX_SCROLL = 5000
@@ -330,8 +331,15 @@ def get_coordinates(driver, bug_id, browser, seq_no):
         json.dump(loc_dict, f)
 
 
-def get_screenshot_and_domtree(driver, bug_id, browser, seq_no=None):
+def get_screenshot_and_domtree(driver, bug, browser, seq_no=None):
+    try:
+        driver.get(bug['url'])
+    except TimeoutException as e:
+        log.exception(e)
+        log.warning('Continuing...')
     wait_loaded(driver)
+
+    bug_id = str(bug['id'])
     screenshot(driver, bug_id, browser, seq_no)
     get_domtree(driver, bug_id, browser, seq_no)
     get_coordinates(driver, bug_id, browser, seq_no)
@@ -371,24 +379,11 @@ def run_in_parallel(func, args1, args2):
 
 
 def run_test_both(bug, firefox_driver, chrome_driver):
-    log.info('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'chrome'))
-    try:
-        chrome_driver.get(bug['url'])
-    except (TimeoutException, WebDriverException) as e:
-        log.exception(e)
-        log.warning('Continuing...')
-
-    log.info('Testing %s (bug %d) in %s' % (bug['url'], bug['id'], 'firefox'))
-    try:
-        firefox_driver.get(bug['url'])
-    except TimeoutException as e:
-        log.exception(e)
-        log.warning('Continuing...')
-
+    log.info('Testing bug %s on %s', bug['id'], urlparse(bug['url']).netloc)
     run_in_parallel(
         func=get_screenshot_and_domtree,
-        args1=(chrome_driver, str(bug['id']), 'chrome'),
-        args2=(firefox_driver, str(bug['id']), 'firefox'),
+        args1=(chrome_driver, bug, 'chrome'),
+        args2=(firefox_driver, bug, 'firefox'),
     )
     log.info('first sequence done')
 
@@ -417,8 +412,8 @@ def run_test_both(bug, firefox_driver, chrome_driver):
 
         run_in_parallel(
             func=get_screenshot_and_domtree,
-            args1=(firefox_driver, str(bug['id']), 'firefox', str(line_number)),
-            args2=(chrome_driver, str(bug['id']), 'chrome', str(line_number)),
+            args1=(firefox_driver, bug, 'firefox', str(line_number)),
+            args2=(chrome_driver, bug, 'chrome', str(line_number)),
         )
         log.info('sequence done')
 

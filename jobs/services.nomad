@@ -286,8 +286,8 @@ job "autowebcompat-services" {
         destination = "local/config.ini"
       }
       resources {
-        memory = 700
-        cpu = 2000
+        memory = 400
+        cpu = 1000
         network {
           port "http" {}
         }
@@ -319,9 +319,6 @@ job "autowebcompat-services" {
         port_map {
           http = 4444
         }
-        volumes = [
-          "/dev/shm:/dev/shm",
-        ]
       }
       resources {
         memory = 500
@@ -331,8 +328,8 @@ job "autowebcompat-services" {
         }
       }
       env {
-        GRID_TIMEOUT = 180
-        GRID_BROWSER_TIMEOUT = 180
+        GRID_TIMEOUT = 600
+        GRID_BROWSER_TIMEOUT = 600
       }
       service {
         name = "selenium-hub"

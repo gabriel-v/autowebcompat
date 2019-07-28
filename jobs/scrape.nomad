@@ -1,6 +1,8 @@
 job "autowebcompat-scrape" {
   datacenters = ["dc1"]
   type = "batch"
+  priority = 70
+
   parameterized {
     payload = "forbidden"
     meta_required = ["dataset_path"]
@@ -55,7 +57,7 @@ job "autowebcompat-scrape" {
       }
       resources {
         cpu = 1000
-        memory = 800
+        memory = 500
       }
     }
   }
