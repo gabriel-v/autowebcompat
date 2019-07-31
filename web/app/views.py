@@ -69,9 +69,11 @@ def index(request):
 
 
 def vote(request):
-    request.user.label_set
-    user_decisions = models.Label.objects.filter(user=request.user)
-    query = models.Decision.objects.exclude(id__in=user_decisions)
+    query = models.Decision.objects
+    if request.user.is_authenticated:
+        user_decisions = models.Label.objects.filter(user=request.user)
+        query = query.exclude(id__in=user_decisions)
+
     cent = list(query.order_by('updated_at')[:100])
     if not cent:
         return HttpResponse('You labeled everything we have. Thanks.')
